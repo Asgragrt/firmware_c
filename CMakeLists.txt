@@ -15,7 +15,8 @@ pico_sdk_init()
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME}
     src/main.c
-    src/tusb/tud_utils.c
+    src/tusb/tud_utils.c 
+    src/kbd/kbd.c   
 )
 
 target_sources(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/tusb/usb_descriptors.c)

@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "tusb.h": "c",
+        "stdlib.h": "c",
+        "kbd.h": "c"
+    }
+}

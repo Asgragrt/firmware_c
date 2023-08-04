@@ -6,6 +6,8 @@
 #include "tusb.h"
 #include "tud_utils.h"
 
+#include "../kbd/kbd.h"
+
 /* Blink pattern
  * - 250 ms  : device not mounted
  * - 1000 ms : device mounted
@@ -47,7 +49,7 @@ void tud_resume_cb(void){
     blink_interval_ms = BLINK_MOUNTED;
 }
 
-void hid_task(void){
+void hid_task(keyboard* kbd){
     // Poll every 1ms
     const uint32_t interval_ms = 1;
     static uint32_t start_ms = 0;
@@ -69,30 +71,20 @@ void hid_task(void){
     // use to avoid send multiple consecutive zero report for keyboard
     
     static bool has_key = false;
-    uint8_t buffer[20];
-    for ( uint8_t i = 0; i < 20; i++ ) buffer[i] = 0;
+    uint8_t buffer[keycode_buffer] = {0};
 
-    //Dealing with initial sends
+    //Dealing with initial reports
     static uint8_t first_hundred_times = 100;
     if ( first_hundred_times ){
         tud_hid_nkro_keyboard_report(0, buffer);
         first_hundred_times -= 1;
         return;
     }
-    
-    if ( btn ){
-        buffer[0] = HID_KEY_A;
-        buffer[1] = HID_KEY_B;
-        buffer[2] = HID_KEY_C;
-        buffer[3] = HID_KEY_D;
-        buffer[4] = HID_KEY_E;
-        buffer[5] = HID_KEY_F;
-        //buffer[6] = HID_KEY_G;
-        /*
-        buffer[0] = HID_KEY_CONTROL_LEFT;
-        buffer[1] = HID_KEY_O;*/
-        
-
+    if ( update_buffer(kbd, buffer, keycode_buffer) ){
+        tud_hid_nkro_keyboard_report(0, buffer);
+    }
+    /*
+    if ( update_buffer(kbd, buffer, keycode_buffer) ){
         tud_hid_nkro_keyboard_report(0, buffer);
 
         has_key = true;
@@ -105,6 +97,7 @@ void hid_task(void){
         
         has_key = false;
     }
+    */
     
 }
 
@@ -112,7 +105,7 @@ void hid_task(void){
 // USB HID
 //--------------------------------------------------------------------+
 
-bool tud_hid_nkro_keyboard_report(uint8_t report_id, uint8_t keycode[20]){
+bool tud_hid_nkro_keyboard_report(uint8_t report_id, uint8_t keycode[keycode_buffer]){
 
     hid_nkro_keyboard_report_t report = {
         .modifier   = 0,
@@ -123,7 +116,7 @@ bool tud_hid_nkro_keyboard_report(uint8_t report_id, uint8_t keycode[20]){
 
     uint8_t key_count = 0;
 
-    for(uint8_t key = 0; key < 20; key++){
+    for(uint8_t key = 0; key < keycode_buffer; key++){
 
         //Boot key support
         if ( key_count < 6 ){
@@ -193,7 +186,7 @@ void led_blinking_task(void){
 //--------------------------------------------------------------------+
 // USB CDC
 //--------------------------------------------------------------------+
-void cdc_task(void){
+void cdc_task(keyboard* kbd){
     // connected and there are data available
     if ( tud_cdc_available() ){
         // read datas
@@ -201,6 +194,38 @@ void cdc_task(void){
         uint32_t count = tud_cdc_read(buf, sizeof(buf));
         tud_cdc_write(buf, count);
         tud_cdc_write_flush();
+        uint8_t t1 = buf[0] % 10;
+        uint8_t t2 = (buf[0] / 10) % 10;
+        tud_cdc_write_char(t2 + 48);
+        tud_cdc_write_char(t1 + 48);
+        tud_cdc_write_char(' ');
+
+        if ( buf[0] == '1' ){
+            for(uint8_t i = 0; i < 9; i++){
+                tud_cdc_write_char(kbd->pins[i].pin + 48);
+            }
+        }
+
+        if ( buf[0] == '2' ){
+            for(uint8_t i = 0; i < 9; i++){
+                uint8_t u = kbd->pins[i].keys[1] % 10;
+                uint8_t d = (kbd->pins[i].keys[1] / 10) % 10;
+                uint8_t c = (kbd->pins[i].keys[1] / 100) % 10;
+                tud_cdc_write_char(c + 48);
+                tud_cdc_write_char(d + 48);
+                tud_cdc_write_char(u + 48);
+                tud_cdc_write_char(' ');
+            }
+        }
+
+        if ( buf[0] == '2' ){
+            update_status(kbd);
+            for(uint8_t i = 0; i < 9; i++){
+                tud_cdc_write_char(((kbd->status & (1 << i)) >> i) + 48);
+                tud_cdc_write_char(' ');
+            }
+        }
+
         (void) count;
     }
 }
