@@ -67,6 +67,7 @@ void hid_task(void){
     /*------------- Keyboard -------------*/
     if ( !tud_hid_n_ready(0) ) return;
     // use to avoid send multiple consecutive zero report for keyboard
+    
     static bool has_key = false;
     uint8_t buffer[20];
     for ( uint8_t i = 0; i < 20; i++ ) buffer[i] = 0;
@@ -86,9 +87,10 @@ void hid_task(void){
         buffer[3] = HID_KEY_D;
         buffer[4] = HID_KEY_E;
         buffer[5] = HID_KEY_F;
-        buffer[6] = HID_KEY_G;
-        //buffer[0] = HID_KEY_CONTROL_LEFT;
-        //buffer[1] = HID_KEY_O;
+        //buffer[6] = HID_KEY_G;
+        /*
+        buffer[0] = HID_KEY_CONTROL_LEFT;
+        buffer[1] = HID_KEY_O;*/
         
 
         tud_hid_nkro_keyboard_report(0, buffer);
@@ -103,6 +105,7 @@ void hid_task(void){
         
         has_key = false;
     }
+    
 }
 
 //--------------------------------------------------------------------+
@@ -111,17 +114,18 @@ void hid_task(void){
 
 bool tud_hid_nkro_keyboard_report(uint8_t report_id, uint8_t keycode[20]){
 
-    hid_nkro_keyboard_report_t report;
-    report.modifier = 0;
-    report.reserved = 0;
-    for(uint8_t i = 0; i < 6; i++) report.boot_keys[i] = 0;
-    for(uint8_t i = 0; i < bitmap_byte_size; i++) report.key_bitmap[i] = 0;
+    hid_nkro_keyboard_report_t report = {
+        .modifier   = 0,
+        .reserved   = 0,
+        .boot_keys  = {0},
+        .key_bitmap = {0},
+    };
 
     uint8_t key_count = 0;
 
     for(uint8_t key = 0; key < 20; key++){
 
-        //Boot key support [UNTESTED]
+        //Boot key support
         if ( key_count < 6 ){
             boot_key_modifier(&report, keycode[key], &key_count);
         }
@@ -142,42 +146,39 @@ void boot_key_modifier(hid_nkro_keyboard_report_t* report, uint8_t key, uint8_t*
     }
     else {
         report->boot_keys[*counter] = key;
-        *counter++;
+        (*counter)++;
     } 
 }
 
 // Invoked when received GET_REPORT control request
 // Application must fill buffer report's content and return its length.
 // Return zero will cause the stack to STALL request
-uint16_t tud_hid_get_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen)
-{
-  // TODO not Implemented
-  (void) itf;
-  (void) report_id;
-  (void) report_type;
-  (void) buffer;
-  (void) reqlen;
+uint16_t tud_hid_get_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen){
+    // TODO not Implemented
+    (void) itf;
+    (void) report_id;
+    (void) report_type;
+    (void) buffer;
+    (void) reqlen;
 
-  return 0;
+    return 0;
 }
 
 // Invoked when received SET_REPORT control request or
 // received data on OUT endpoint ( Report ID = 0, Type = 0 )
-void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
-{
-  // TODO set LED based on CAPLOCK, NUMLOCK etc...
-  (void) itf;
-  (void) report_id;
-  (void) report_type;
-  (void) buffer;
-  (void) bufsize;
+void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize){
+    // TODO set LED based on CAPLOCK, NUMLOCK etc...
+    (void) itf;
+    (void) report_id;
+    (void) report_type;
+    (void) buffer;
+    (void) bufsize;
 }
 
 //--------------------------------------------------------------------+
 // BLINKING TASK
 //--------------------------------------------------------------------+
-void led_blinking_task(void)
-{
+void led_blinking_task(void){
   static uint32_t start_ms = 0;
   static bool led_state = false;
 
@@ -192,15 +193,12 @@ void led_blinking_task(void)
 //--------------------------------------------------------------------+
 // USB CDC
 //--------------------------------------------------------------------+
-void cdc_task(void)
-{
+void cdc_task(void){
     // connected and there are data available
-    if ( tud_cdc_available() )
-    {
+    if ( tud_cdc_available() ){
         // read datas
         char buf[64];
         uint32_t count = tud_cdc_read(buf, sizeof(buf));
-        //for(uint32_t i = 0; i < count; i++) tud_cdc_write_char(buf[i]);
         tud_cdc_write(buf, count);
         tud_cdc_write_flush();
         (void) count;

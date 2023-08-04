@@ -288,7 +288,7 @@
 			[
 				{
 					"backtrace" : 9,
-					"path" : "C:/Users/user/Documents/Code/Pico/firmware"
+					"path" : "C:/Users/user/Documents/Keyboard/firmware"
 				},
 				{
 					"backtrace" : 2,
@@ -304,7 +304,7 @@
 				},
 				{
 					"backtrace" : 2,
-					"path" : "C:/Users/user/Documents/Code/Pico/firmware/build/generated/pico_base"
+					"path" : "C:/Users/user/Documents/Keyboard/firmware/build/generated/pico_base"
 				},
 				{
 					"backtrace" : 2,
@@ -727,7 +727,7 @@
 			[
 				{
 					"backtrace" : 9,
-					"path" : "C:/Users/user/Documents/Code/Pico/firmware"
+					"path" : "C:/Users/user/Documents/Keyboard/firmware"
 				},
 				{
 					"backtrace" : 2,
@@ -743,7 +743,7 @@
 				},
 				{
 					"backtrace" : 2,
-					"path" : "C:/Users/user/Documents/Code/Pico/firmware/build/generated/pico_base"
+					"path" : "C:/Users/user/Documents/Keyboard/firmware/build/generated/pico_base"
 				},
 				{
 					"backtrace" : 2,
@@ -1131,7 +1131,7 @@
 			[
 				{
 					"backtrace" : 9,
-					"path" : "C:/Users/user/Documents/Code/Pico/firmware"
+					"path" : "C:/Users/user/Documents/Keyboard/firmware"
 				},
 				{
 					"backtrace" : 2,
@@ -1147,7 +1147,7 @@
 				},
 				{
 					"backtrace" : 2,
-					"path" : "C:/Users/user/Documents/Code/Pico/firmware/build/generated/pico_base"
+					"path" : "C:/Users/user/Documents/Keyboard/firmware/build/generated/pico_base"
 				},
 				{
 					"backtrace" : 2,

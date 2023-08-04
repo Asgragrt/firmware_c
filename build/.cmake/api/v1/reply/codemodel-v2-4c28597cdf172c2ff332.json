@@ -1138,7 +1138,7 @@
 				{
 					"directoryIndex" : 43,
 					"id" : "bs2_default::@bc554eaed616d198a22d",
-					"jsonFile" : "target-bs2_default-Debug-d750cf2e651b52fb9109.json",
+					"jsonFile" : "target-bs2_default-Debug-94fc33928fce713aad21.json",
 					"name" : "bs2_default",
 					"projectIndex" : 1
 				},
@@ -1166,7 +1166,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "firmware::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-firmware-Debug-f723dd6f1e4a96fe10f2.json",
+					"jsonFile" : "target-firmware-Debug-9f34a2318667adc5d849.json",
 					"name" : "firmware",
 					"projectIndex" : 0
 				},
@@ -1190,8 +1190,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "C:/Users/user/Documents/Code/Pico/firmware/build",
-		"source" : "C:/Users/user/Documents/Code/Pico/firmware"
+		"build" : "C:/Users/user/Documents/Keyboard/firmware/build",
+		"source" : "C:/Users/user/Documents/Keyboard/firmware"
 	},
 	"version" : 
 	{

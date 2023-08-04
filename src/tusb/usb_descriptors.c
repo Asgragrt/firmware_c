@@ -47,7 +47,8 @@ uint8_t const * tud_descriptor_device_cb(void){
 // HID Report Descriptor
 //--------------------------------------------------------------------+
 uint8_t const desc_hid_report1[] = {
-    TUD_HID_REPORT_DESC_NKRO_KEYBOARD()    
+    TUD_HID_REPORT_DESC_NKRO_KEYBOARD() 
+    //TUD_HID_REPORT_DESC_KEYBOARD()   
 };
 
 
