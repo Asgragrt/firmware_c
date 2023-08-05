@@ -172,7 +172,6 @@ void led_blinking_task(void){
 //--------------------------------------------------------------------+
 // USB CDC
 //--------------------------------------------------------------------+
-#define FLASH_TARGET_OFFSET (256 * 1024)
 
 void cdc_write_char_dec(uint8_t val){
     uint8_t u = val % 10;
@@ -192,11 +191,7 @@ void cdc_task(keyboard* kbd, bool reboot, bool* write, uint8_t* write_buff){
         uint32_t count = tud_cdc_read(buf, sizeof(buf));
         tud_cdc_write(buf, count);
         tud_cdc_write_flush();
-        uint8_t t1 = buf[0] % 10;
-        uint8_t t2 = (buf[0] / 10) % 10;
-        tud_cdc_write_char(t2 + 48);
-        tud_cdc_write_char(t1 + 48);
-        tud_cdc_write_char(' ');
+        cdc_write_char_dec(buf[0]);
 
         if ( buf[0] == '1' ){
             for(uint8_t i = 0; i < 9; i++){
@@ -227,6 +222,7 @@ void cdc_task(keyboard* kbd, bool reboot, bool* write, uint8_t* write_buff){
         if ( buf[0] == '4' ){
             const uint8_t *flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
             tud_cdc_write_char(flash_target_contents[0]);
+            tud_cdc_write_char(' ');
             for(uint8_t i = 0; i < 10; i++){
                 cdc_write_char_dec(flash_target_contents[i]);
                 

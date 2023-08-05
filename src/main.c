@@ -18,10 +18,14 @@
 // MACRO CONSTANT TYPEDEF PROTYPES
 //--------------------------------------------------------------------+
 
-const int FIFO_LENGTH = 1;
+mutex_t mutex_var;
 
-queue_t multicore_fifo;
-
+bool timer_callback(repeating_timer_t *rt){
+    static bool status = true;
+    gpio_put(20, status);
+    status ^= true;
+    return true;
+}
 
 //Debug lock 
 void core1_entry(){
@@ -33,24 +37,45 @@ void core1_entry(){
     gpio_init(19);
     gpio_set_dir(19, GPIO_OUT);
 
-    bool status = false;
+    gpio_init(20);
+    gpio_set_dir(20, GPIO_OUT);
 
-    bool read;
+    repeating_timer_t timer;
 
-    uint8_t fifo_read;
+    add_repeating_timer_ms(250, timer_callback, NULL, &timer);
 
+    const uint8_t *flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
+    uint8_t status = 0, new_status = 0;
     while(1){
-        read = queue_try_remove(&multicore_fifo, &fifo_read);
-        if ( read ){
-            if ( fifo_read == '0' ){
-                gpio_put(18, true);
-                gpio_put(19, false);
+        mutex_enter_blocking(&mutex_var);
+        new_status = flash_target_contents[0];
+        mutex_exit(&mutex_var);
+        
+        if ( new_status != status ){
+            switch ( new_status - 48){
+                case 0:
+                    gpio_put(18, false);
+                    gpio_put(19, false);
+                    break;
+
+                case 1:
+                    gpio_put(18, true);
+                    gpio_put(19, false);
+                    break;
+
+                case 2:
+                    gpio_put(18, false);
+                    gpio_put(19, true);
+                    break;
+
+                default:
+                    gpio_put(18, true);
+                    gpio_put(19, true);
+                    break;
+
             }
-            else {
-                gpio_put(19, true);
-                gpio_put(18, false);
-            }
-        }    
+        }
+        status = new_status;    
     }
 }
 
@@ -59,6 +84,10 @@ void core1_entry(){
 
 /*------------- MAIN -------------*/
 int main(void){
+    //queue_init(&multicore_fifo, sizeof(uint8_t), FIFO_LENGTH);
+    //init_q(&multicore_fifo);
+    mutex_init(&mutex_var);
+    
     multicore_launch_core1(core1_entry);
 
     tusb_init();
@@ -68,15 +97,7 @@ int main(void){
     tud_init(BOARD_TUD_RHPORT);
 
     keyboard kbd = kbd_new();
-    kbd_init(&kbd);
-
-    queue_init(&multicore_fifo, sizeof(uint8_t), FIFO_LENGTH);
-
-    //multicore_lockout_start_blocking();
-
-    //FLASH READING AND WRITING
-
-    //multicore_lockout_end_blocking();
+    kbd_init(&kbd);  
 
     bool write = false;
 
@@ -90,8 +111,12 @@ int main(void){
         hid_task(&kbd);
         cdc_task(&kbd, watchdog_caused_reboot(), &write, write_data);
         if ( write ){
-            val = write_data[0];
-            queue_try_add(&multicore_fifo, &val);
+            memcpy(&val, write_data, 1);
+
+            //mutex_enter_timeout_ms(&mutex_var, 3);
+
+            //mutex_exit(&mutex_var);
+
             save_flash(write_data);
             write = false;
         }
