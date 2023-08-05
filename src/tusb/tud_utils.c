@@ -7,6 +7,7 @@
 #include "tud_utils.h"
 
 #include "../kbd/kbd.h"
+#include "../flash/flash.h"
 
 /* Blink pattern
  * - 250 ms  : device not mounted
@@ -83,21 +84,6 @@ void hid_task(keyboard* kbd){
     if ( update_buffer(kbd, buffer, keycode_buffer) ){
         tud_hid_nkro_keyboard_report(0, buffer);
     }
-    /*
-    if ( update_buffer(kbd, buffer, keycode_buffer) ){
-        tud_hid_nkro_keyboard_report(0, buffer);
-
-        has_key = true;
-    }
-    else{
-        // send empty key report if previously has key pressed
-        if (has_key){ 
-            tud_hid_nkro_keyboard_report(0, buffer);
-        }
-        
-        has_key = false;
-    }
-    */
     
 }
 
@@ -186,7 +172,19 @@ void led_blinking_task(void){
 //--------------------------------------------------------------------+
 // USB CDC
 //--------------------------------------------------------------------+
-void cdc_task(keyboard* kbd){
+#define FLASH_TARGET_OFFSET (256 * 1024)
+
+void cdc_write_char_dec(uint8_t val){
+    uint8_t u = val % 10;
+    uint8_t d = (val / 10) % 10;
+    uint8_t c = (val / 100) % 10;
+    tud_cdc_write_char(c + 48);
+    tud_cdc_write_char(d + 48);
+    tud_cdc_write_char(u + 48);
+    tud_cdc_write_char(' ');
+}
+
+void cdc_task(keyboard* kbd, bool reboot, bool* write, uint8_t* write_buff){
     // connected and there are data available
     if ( tud_cdc_available() ){
         // read datas
@@ -208,13 +206,7 @@ void cdc_task(keyboard* kbd){
 
         if ( buf[0] == '2' ){
             for(uint8_t i = 0; i < 9; i++){
-                uint8_t u = kbd->pins[i].keys[1] % 10;
-                uint8_t d = (kbd->pins[i].keys[1] / 10) % 10;
-                uint8_t c = (kbd->pins[i].keys[1] / 100) % 10;
-                tud_cdc_write_char(c + 48);
-                tud_cdc_write_char(d + 48);
-                tud_cdc_write_char(u + 48);
-                tud_cdc_write_char(' ');
+                cdc_write_char_dec(kbd->pins[i].keys[0]);
             }
         }
 
@@ -226,6 +218,24 @@ void cdc_task(keyboard* kbd){
             }
         }
 
+        if ( buf[0] == '3' ){
+            tud_cdc_write_char((char) reboot + 48);
+        }
+
         (void) count;
+
+        if ( buf[0] == '4' ){
+            const uint8_t *flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
+            tud_cdc_write_char(flash_target_contents[0]);
+            for(uint8_t i = 0; i < 10; i++){
+                cdc_write_char_dec(flash_target_contents[i]);
+                
+            }
+        }
+
+        if ( buf[0] == '5' ){
+            *write = true;
+            memcpy(write_buff, buf + 1, count - 1);
+        }
     }
 }
