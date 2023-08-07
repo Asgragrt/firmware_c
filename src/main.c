@@ -42,6 +42,53 @@ void core1_entry(){
         mutex_exit(&mutex_v);
         busy_wait_us(delay);
     }
+    /*
+
+    gpio_init(18);
+    gpio_set_dir(18, GPIO_OUT);
+
+    gpio_init(19);
+    gpio_set_dir(19, GPIO_OUT);
+
+    gpio_init(20);
+    gpio_set_dir(20, GPIO_OUT);
+
+    repeating_timer_t timer;
+
+    add_repeating_timer_ms(250, timer_callback, NULL, &timer);
+
+    uint8_t status = 0, new_status = 0;
+    while(1){
+        //No need to block since writing to flash blocks this core :D
+        new_status = flash_target_contents[0];
+        
+        if ( new_status != status ){
+            switch ( new_status - 48){
+                case 0:
+                    gpio_put(18, false);
+                    gpio_put(19, false);
+                    break;
+
+                case 1:
+                    gpio_put(18, true);
+                    gpio_put(19, false);
+                    break;
+
+                case 2:
+                    gpio_put(18, false);
+                    gpio_put(19, true);
+                    break;
+
+                default:
+                    gpio_put(18, true);
+                    gpio_put(19, true);
+                    break;
+
+            }
+        }
+        status = new_status;    
+    }
+    */
 }
 
 
@@ -68,8 +115,15 @@ int main(void){
     // Assign to pwm
 
     mutex_enter_blocking(&mutex_v);
-    led_array_update_mode(&led_array, flash_target_contents[0] - 48);
+    if (flash_target_contents[0] >= 48 ){
+        led_array_update_mode(&led_array, flash_target_contents[0] - 48);
+    }
+    else {
+        led_array_update_mode(&led_array, flash_target_contents[0]);
+    }
     mutex_exit(&mutex_v);
+
+    keyboard_update_key(&kbd);
 
     while (1){
         uint8_t write_data[FLASH_PAGE_SIZE] = { 0 };
@@ -81,11 +135,18 @@ int main(void){
         if ( write ){
             save_flash(write_data);
             write = false;
+            keyboard_update_key(&kbd);
         }
 
         mutex_enter_blocking(&mutex_v);
-        led_array_update_mode(&led_array, flash_target_contents[0] - 48);
+        if (flash_target_contents[0] >= 48 ){
+            led_array_update_mode(&led_array, flash_target_contents[0] - 48);
+        }
+        else {
+            led_array_update_mode(&led_array, flash_target_contents[0]);
+        }
         led_array_set_levels(&led_array);
         mutex_exit(&mutex_v);
     }
+    //flash_target_contents[0]
 }

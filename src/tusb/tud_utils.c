@@ -192,33 +192,40 @@ void cdc_task(keyboard_t* kbd, bool reboot, bool* write, uint8_t* write_buff){
         tud_cdc_write_flush();
         cdc_write_char_dec(buf[0]);
 
-        if ( buf[0] == '1' ){
+        if ( buf[0] == '1' || buf[0] == 1){
             for(uint8_t i = 0; i < 9; i++){
                 tud_cdc_write_char(kbd->pins[i].pin + 48);
             }
         }
 
-        if ( buf[0] == '2' ){
+        if ( buf[0] == '2' || buf[0] == 2 ){
+            tud_cdc_write_char('\n');
+            tud_cdc_write_char('\n');
             for(uint8_t i = 0; i < 9; i++){
-                cdc_write_char_dec(kbd->pins[i].keys[0]);
+                for(uint8_t j = 0; j < kbd->pins[i].key_count; j++){
+                    cdc_write_char_dec(kbd->pins[i].keys[j]);
+                }
+                tud_cdc_write_char('\n');
             }
         }
 
-        if ( buf[0] == '2' ){
+        /*
+        if ( buf[0] == '2' || buf[0] == 2 ){
             keyboard_update_status(kbd);
             for(uint8_t i = 0; i < 9; i++){
                 tud_cdc_write_char(((kbd->status & (1 << i)) >> i) + 48);
                 tud_cdc_write_char(' ');
             }
         }
+        */
 
-        if ( buf[0] == '3' ){
+        if ( buf[0] == '3' || buf[0] == 3 ){
             tud_cdc_write_char((char) reboot + 48);
         }
 
         (void) count;
 
-        if ( buf[0] == '4' ){
+        if ( buf[0] == '4' || buf[0] == 4 ){
             tud_cdc_write_char(flash_target_contents[0]);
             tud_cdc_write_char(' ');
             for(uint8_t i = 0; i < 10; i++){
@@ -227,7 +234,7 @@ void cdc_task(keyboard_t* kbd, bool reboot, bool* write, uint8_t* write_buff){
             }
         }
 
-        if ( buf[0] == '5' ){
+        if ( buf[0] == '5' || buf[0] == 5 ){
             *write = true;
             memcpy(write_buff, buf + 1, count - 1);
         }

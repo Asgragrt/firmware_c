@@ -43,7 +43,6 @@
                  K4_keys, K5_keys, K6_keys, K7_keys, \
                  K8_keys}
 
-
 typedef struct {
     uint8_t pin; 
     uint8_t key_count;
@@ -62,5 +61,7 @@ void keyboard_init(keyboard_t* kbd);
 bool keyboard_update_status(keyboard_t* kbd);
 
 bool keyboard_update_buffer(keyboard_t* kbd, uint8_t* buffer, uint8_t buflength);
+
+bool keyboard_update_key(keyboard_t* kbd);
 
 #endif /* _KBD_H_ */

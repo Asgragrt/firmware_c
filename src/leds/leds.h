@@ -2,7 +2,7 @@
 #define _LEDS_H_
 
 #define LOW 0
-#define HIGH 35000
+#define HIGH 55000
 
 
 #define LED_COUNT 9

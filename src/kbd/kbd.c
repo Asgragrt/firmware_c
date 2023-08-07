@@ -2,6 +2,7 @@
 #include "pico/stdlib.h"
 
 #include "kbd.h"
+#include "flash/flash.h"
 
 keyboard_t keyboard_new(void){
     uint8_t pins[PIN_COUNT] = KN;
@@ -19,6 +20,7 @@ keyboard_t keyboard_new(void){
             .pin = pins[i],
             .keys = {0},
         };
+        //Maybe j < 4
         for(uint8_t j = current_idx; j < keys_size; j++){
             if ( keys[j] == 0 ){
                 kp.key_count = j - current_idx;
@@ -88,4 +90,43 @@ bool keyboard_update_buffer(keyboard_t* kbd, uint8_t* buffer, uint8_t buflength)
 
     kbd->status = new_status;
     return status != new_status;
+}
+// 05 01 69 01 00 23 26 FF
+//    ^^ aquí empieza la escritura
+// MODO LED 01
+// MODIFICAR TECLAS 69
+// MODIFICAR 01 teclas
+// Tecla índice 00
+// Código HID 23 (6)
+// Código HID 26 (9)
+// FIN de modificación de tecla
+
+//Flipped keys 05 00 69 09 00 0F FF 01 0E FF 02 0D FF 03 3A FF 04 12 E0 FF 05 2C FF 06 09 FF 07 07 FF 08 16 FF
+//                ^^
+//Se ocupa mandar todo el código cuando se modifiqué una sola cosa
+bool keyboard_update_key(keyboard_t* kbd){
+    if ( flash_target_contents[1] != 0x69 ) return false;
+
+    uint8_t key_modification_count = flash_target_contents[2];
+
+    
+    uint8_t current_idx = 3;
+    uint8_t key_pin;
+
+    for ( uint8_t i = 0; i < key_modification_count; i++ ){
+        key_pin = flash_target_contents[current_idx];
+        if ( key_pin >= PIN_COUNT ) return false;
+
+        for ( uint8_t j = current_idx + 1; ; j++ ){
+            if ( flash_target_contents[j] == 0xFF ){
+                kbd->pins[key_pin].key_count = j - current_idx - 1;
+                current_idx = j + 1;
+                break;
+            }
+
+            kbd->pins[key_pin].keys[j - current_idx - 1] = flash_target_contents[j];
+        }
+    }
+
+    return true;
 }
