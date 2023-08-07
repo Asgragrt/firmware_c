@@ -50,10 +50,10 @@ void tud_resume_cb(void);
 #define keycode_buffer 20
 
 void led_blinking_task(void);
-void hid_task(keyboard* kbd);
+void hid_task(keyboard_t* kbd);
 bool tud_hid_nkro_keyboard_report(uint8_t report_id, uint8_t keycode[keycode_buffer]);
 void boot_key_modifier(hid_nkro_keyboard_report_t* report, uint8_t key, uint8_t* counter);
-void cdc_task(keyboard* kbd, bool reboot, bool* write, uint8_t* write_buff);
+void cdc_task(keyboard_t* kbd, bool reboot, bool* write, uint8_t* write_buff);
 
 uint16_t tud_hid_get_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen);
 void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize);

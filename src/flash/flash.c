@@ -2,7 +2,7 @@
 #include "hardware/flash.h"
 #include "pico/multicore.h"
 
-const uint8_t *flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
+const uint8_t* flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
 
 //Sector size is 16 times the FLASH_PAGE_SIZE
 

@@ -4,5 +4,10 @@
         "stdlib.h": "c",
         "kbd.h": "c",
         "flash.h": "c",
+        "pwm.h": "c",
+        "cmath": "c",
+        "*.tcc": "c",
+        "cinttypes": "c",
+        "cstdlib": "c"
     }
 }

@@ -50,7 +50,7 @@ void tud_resume_cb(void){
     blink_interval_ms = BLINK_MOUNTED;
 }
 
-void hid_task(keyboard* kbd){
+void hid_task(keyboard_t* kbd){
     // Poll every 1ms
     const uint32_t interval_ms = 1;
     static uint32_t start_ms = 0;
@@ -58,20 +58,19 @@ void hid_task(keyboard* kbd){
     if ( board_millis() - start_ms < interval_ms ) return; // not enough time
     start_ms += interval_ms;
 
-    uint32_t const btn = board_button_read();
+    //uint32_t const btn = board_button_read();
 
     // Remote wakeup
-    if ( tud_suspended() && btn ){
+    if ( tud_suspended() && keyboard_update_status(kbd) ){
         // Wake up host if we are in suspend mode
         // and REMOTE_WAKEUP feature is enabled by host
         tud_remote_wakeup();
     }
 
-    /*------------- Keyboard -------------*/
+    /*------------- keyboard_t -------------*/
     if ( !tud_hid_n_ready(0) ) return;
-    // use to avoid send multiple consecutive zero report for keyboard
+    // use to avoid send multiple consecutive zero report for keyboard_t
     
-    static bool has_key = false;
     uint8_t buffer[keycode_buffer] = {0};
 
     //Dealing with initial reports
@@ -81,7 +80,7 @@ void hid_task(keyboard* kbd){
         first_hundred_times -= 1;
         return;
     }
-    if ( update_buffer(kbd, buffer, keycode_buffer) ){
+    if ( keyboard_update_buffer(kbd, buffer, keycode_buffer) ){
         tud_hid_nkro_keyboard_report(0, buffer);
     }
     
@@ -183,7 +182,7 @@ void cdc_write_char_dec(uint8_t val){
     tud_cdc_write_char(' ');
 }
 
-void cdc_task(keyboard* kbd, bool reboot, bool* write, uint8_t* write_buff){
+void cdc_task(keyboard_t* kbd, bool reboot, bool* write, uint8_t* write_buff){
     // connected and there are data available
     if ( tud_cdc_available() ){
         // read datas
@@ -206,7 +205,7 @@ void cdc_task(keyboard* kbd, bool reboot, bool* write, uint8_t* write_buff){
         }
 
         if ( buf[0] == '2' ){
-            update_status(kbd);
+            keyboard_update_status(kbd);
             for(uint8_t i = 0; i < 9; i++){
                 tud_cdc_write_char(((kbd->status & (1 << i)) >> i) + 48);
                 tud_cdc_write_char(' ');
@@ -220,7 +219,6 @@ void cdc_task(keyboard* kbd, bool reboot, bool* write, uint8_t* write_buff){
         (void) count;
 
         if ( buf[0] == '4' ){
-            const uint8_t *flash_target_contents = (const uint8_t *) (XIP_BASE + FLASH_TARGET_OFFSET);
             tud_cdc_write_char(flash_target_contents[0]);
             tud_cdc_write_char(' ');
             for(uint8_t i = 0; i < 10; i++){

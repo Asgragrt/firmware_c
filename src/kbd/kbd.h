@@ -1,7 +1,8 @@
 #ifndef _KBD_H_
 #define _KBD_H_
 
-#define pin_count 9
+#define PIN_COUNT 9
+
 
 #define K0 0
 #define K1 1
@@ -12,6 +13,17 @@
 #define K6 4
 #define K7 5
 #define K8 6
+/*
+#define K0 1
+#define K1 3
+#define K2 5
+#define K3 12
+#define K4 14
+#define K5 16
+#define K6 20
+#define K7 22
+#define K8 24
+*/
 #define KN {K0, K1, K2, K3, K4, K5, K6, K7, K8}
 
 #define kc_s(...) __VA_ARGS__, 0
@@ -36,19 +48,19 @@ typedef struct {
     uint8_t pin; 
     uint8_t key_count;
     uint8_t keys[4];
-} keyboard_pin;
+} keyboard_pin_t;
 
 typedef struct {
-    keyboard_pin pins[pin_count];
+    keyboard_pin_t pins[PIN_COUNT];
     uint16_t status;
-} keyboard;
+} keyboard_t;
 
-keyboard kbd_new(void);
+keyboard_t keyboard_new(void);
 
-void kbd_init(keyboard* kbd);
+void keyboard_init(keyboard_t* kbd);
 
-bool update_status(keyboard* kbd);
+bool keyboard_update_status(keyboard_t* kbd);
 
-bool update_buffer(keyboard* kbd, uint8_t* buffer, uint8_t buflength);
+bool keyboard_update_buffer(keyboard_t* kbd, uint8_t* buffer, uint8_t buflength);
 
 #endif /* _KBD_H_ */

@@ -17,7 +17,9 @@ add_executable(${PROJECT_NAME}
     src/main.c
     src/tusb/tud_utils.c 
     src/kbd/kbd.c
-    src/flash/flash.c   
+    src/flash/flash.c
+    src/leds/leds.c 
+    src/leds/leds_utils.c
 )
 
 target_sources(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/tusb/usb_descriptors.c)
