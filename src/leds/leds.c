@@ -58,10 +58,24 @@ bool led_array_set_mode(led_array_t* led_array, uint8_t mode){
 }
 
 uint16_t wave_led_pos(led_array_t* led_array, uint8_t current_led){
-    int16_t dif = abs_m((int16_t)led_array->led_counter - (int16_t)current_led);
+    int16_t dif;
     
-    // TODO add different cases depending on the mode
-    return (uint16_t) MIN(dif, abs_m((LED_COUNT - dif)) );
+    switch (led_array->mode){
+        case _double_wave:
+            if ( current_led < LED_COUNT / 2 + LED_COUNT % 2 ){
+                dif = abs_m((int16_t)led_array->led_counter - (int16_t)current_led);
+            }
+            else {
+                dif = abs_m(LED_COUNT - 1 - led_array->led_counter - current_led);
+            }
+
+            return (uint16_t) MIN(dif, abs_m((LED_COUNT - dif)) );
+
+        case _simple_wave: default:
+            dif = abs_m((int16_t)led_array->led_counter - (int16_t)current_led);
+            return (uint16_t) MIN(dif, abs_m((LED_COUNT - dif)) );
+    }
+    
 }
 
 void increase_timer(led_array_t* led_array){
@@ -79,7 +93,7 @@ void wave_duty(led_array_t* led_array, uint8_t current_led, uint16_t* led_duty){
     *led_duty = linear(*led_duty, target_duty, SPEED - led_array->time_counter);
 }
 
-uint64_t simple_wave(led_array_t* led_array){
+uint64_t wave(led_array_t* led_array){
     for(uint8_t i = 0; i < LED_COUNT; i++){
         wave_duty(led_array, i, &led_array->leds[i].duty);
     }
@@ -117,18 +131,22 @@ uint64_t on_off(led_array_t* led_array){
 void led_array_update_mode(led_array_t* led_array, uint8_t mode){
     if ( led_array_set_mode(led_array, mode) ) return;
 
+    for(uint8_t i = 0; i < LED_COUNT; i++){
+        led_array->leds[i].duty = INIT_DUTY;
+    }
+
     // TODO update all needed variables
     switch (led_array->mode){
         //Breathing & on_off
-        case _breathing: case _on_off:
+        case _breathing: 
+        case _on_off:
             led_array->increasing = true;
-            for(uint8_t i = 0; i < LED_COUNT; i++){
-                led_array->leds[i].duty = INIT_DUTY;
-            }
             break;
             
         //Simple wave
-        case _simple_wave: default:
+        case _simple_wave: 
+        case _double_wave:
+        default:
             led_array->led_counter = 0;
             led_array->time_counter = 0;
             break;
@@ -147,13 +165,13 @@ void led_array_update_values(led_array_t* led_array, uint64_t* delay_value){
             *delay_value = on_off(led_array);
             break;
 
-        _simple_wave: default:
-            *delay_value = simple_wave(led_array);
+        case _simple_wave: 
+        case _double_wave:
+        default:
+            *delay_value = wave(led_array);
             break;
 
     }
 
     led_array->duty_assigned = false;
 }
-
-//pwm_set_gpio_level

@@ -103,7 +103,8 @@ bool keyboard_update_buffer(keyboard_t* kbd, uint8_t* buffer, uint8_t buflength)
 
 //Flipped keys 05 00 69 09 00 0F FF 01 0E FF 02 0D FF 03 3A FF 04 12 E0 FF 05 2C FF 06 09 FF 07 07 FF 08 16 FF
 //                ^^
-//Se ocupa mandar todo el código cuando se modifiqué una sola cosa
+//Se ocupa mandar todo el código cuando se modifique una sola cosa
+//Estructura: 05_ModoLed_69_CantidadDeTeclasAModificar_PosiciónTecla_CódigoHID0_CódigoHID1.._CódigoHID3_FF_...
 bool keyboard_update_key(keyboard_t* kbd){
     if ( flash_target_contents[1] != 0x69 ) return false;
 

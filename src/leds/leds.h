@@ -42,7 +42,15 @@
               LED5, LED6, LED7, LED8, LED9}
 */
 
-#define MODE_COUNT 3
+enum {
+    _simple_wave = 0,
+    _breathing = 1,
+    _on_off = 2,
+    _double_wave = 3,
+    E_MODE_COUNT,
+};
+
+#define MODE_COUNT E_MODE_COUNT
 #define SPEED 400
 #define INIT_DUTY 1
 
@@ -59,12 +67,6 @@ typedef struct {
     uint16_t led_counter;
     bool duty_assigned;
 } led_array_t;
-
-enum {
-    _simple_wave = 0,
-    _breathing = 1,
-    _on_off = 2,
-};
 
 led_array_t led_array_init(void);
 
