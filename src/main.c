@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "bsp/board.h"
 #include "tusb.h"
 
 #include "pico/stdlib.h"
@@ -53,7 +52,9 @@ int main(void){
     mutex_init(&mutex_v);
 
     tusb_init();
-    board_init();
+    //board_init();
+    gpio_init(0);
+    gpio_set_dir(0, GPIO_OUT);
 
     // init device stack on configured roothub port
     tud_init(BOARD_TUD_RHPORT);
@@ -68,12 +69,10 @@ int main(void){
     // Assign to pwm
 
     mutex_enter_blocking(&mutex_v);
-    if (flash_target_contents[0] >= 48 ){
-        led_array_update_mode(&led_array, flash_target_contents[0] - 48);
-    }
-    else {
-        led_array_update_mode(&led_array, flash_target_contents[0]);
-    }
+        led_array_update_mode(
+            &led_array, flash_target_contents[0] 
+            - 48 * (flash_target_contents[0] >= 48)
+            );
     mutex_exit(&mutex_v);
 
     keyboard_update_key(&kbd);
@@ -92,13 +91,16 @@ int main(void){
         }
 
         mutex_enter_blocking(&mutex_v);
-        if (flash_target_contents[0] >= 48 ){
-            led_array_update_mode(&led_array, flash_target_contents[0] - 48);
-        }
-        else {
-            led_array_update_mode(&led_array, flash_target_contents[0]);
-        }
-        led_array_set_levels(&led_array);
+
+            led_array_update_mode(
+                &led_array, flash_target_contents[0] 
+                - 48 * (flash_target_contents[0] >= 48)
+                );
+            if ( tud_suspended() ) {
+                led_array_update_mode(&led_array, _led_off);
+            }
+            led_array_set_levels(&led_array);
+
         mutex_exit(&mutex_v);
     }
     //flash_target_contents[0]

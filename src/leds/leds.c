@@ -157,6 +157,9 @@ void led_array_update_values(led_array_t* led_array, uint64_t* delay_value){
     if ( !led_array->duty_assigned ) return;
 
     switch(led_array->mode){
+        case _led_off:
+            *delay_value = 500000ULL;
+            break;
         case _breathing:
             *delay_value = breathing(led_array);
             break;
@@ -175,3 +178,5 @@ void led_array_update_values(led_array_t* led_array, uint64_t* delay_value){
 
     led_array->duty_assigned = false;
 }
+
+// TODO add off state, and use it when suspended

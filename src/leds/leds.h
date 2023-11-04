@@ -4,7 +4,7 @@
 #define LOW 0
 #define HIGH 55000
 
-
+/*
 #define LED_COUNT 9
 
 #define LED0 18
@@ -20,11 +20,11 @@
 #define LEDN {LED0, LED1, LED2, LED3, LED4,\
               LED5, LED6, LED7, LED8}
 
-/*
+
 #define LEDN {LED0, LED1, LED2, LED3, LED4,\
               LED5}
-*/
-/*
+
+/*/
 //Real leds
 #define LED_COUNT 10
 
@@ -38,15 +38,20 @@
 #define LED7 21
 #define LED8 23
 #define LED9 25
+/*
 #define LEDN {LED0, LED1, LED2, LED3, LED4,\
               LED5, LED6, LED7, LED8, LED9}
 */
+#define LEDN {LED0, LED1, LED2, LED4, LED3,\
+              LED6, LED5, LED7, LED8, LED9}
+
 
 enum {
     _simple_wave = 0,
-    _breathing = 1,
-    _on_off = 2,
-    _double_wave = 3,
+    _breathing,
+    _on_off,
+    _double_wave,
+    _led_off,
     E_MODE_COUNT,
 };
 

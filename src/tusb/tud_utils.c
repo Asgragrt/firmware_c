@@ -5,6 +5,7 @@
 #include "bsp/board.h"
 #include "tusb.h"
 #include "tud_utils.h"
+#include "pico/stdlib.h"
 
 #include "../kbd/kbd.h"
 #include "../flash/flash.h"
@@ -51,20 +52,26 @@ void tud_resume_cb(void){
 }
 
 void hid_task(keyboard_t* kbd){
-    // Poll every 1ms
-    const uint32_t interval_ms = 1;
+    const uint32_t interval_ms = POLLING_INTERVAL;
     static uint32_t start_ms = 0;
-
     if ( board_millis() - start_ms < interval_ms ) return; // not enough time
     start_ms += interval_ms;
+    /*
+    const uint64_t interval_us = POLLING_INTERVAL * 1000u;
+    static uint64_t start_us = 0;
+    if ( to_us_since_boot(get_absolute_time()) - start_us < interval_us ) return;
+    start_us += interval_us;
+    */
 
     //uint32_t const btn = board_button_read();
 
     // Remote wakeup
-    if ( tud_suspended() && keyboard_update_status(kbd) ){
+    if ( tud_suspended() ){
         // Wake up host if we are in suspend mode
         // and REMOTE_WAKEUP feature is enabled by host
-        tud_remote_wakeup();
+        if ( keyboard_update_status(kbd) ){
+            tud_remote_wakeup();
+        }
     }
 
     /*------------- keyboard_t -------------*/
@@ -72,17 +79,8 @@ void hid_task(keyboard_t* kbd){
     // use to avoid send multiple consecutive zero report for keyboard_t
     
     uint8_t buffer[keycode_buffer] = {0};
-
-    //Dealing with initial reports
-    static uint8_t first_hundred_times = 100;
-    if ( first_hundred_times ){
-        tud_hid_nkro_keyboard_report(0, buffer);
-        first_hundred_times -= 1;
-        return;
-    }
-    if ( keyboard_update_buffer(kbd, buffer, keycode_buffer) ){
-        tud_hid_nkro_keyboard_report(0, buffer);
-    }
+    keyboard_update_buffer(kbd, buffer, keycode_buffer);
+    tud_hid_nkro_keyboard_report(0, buffer);
     
 }
 
@@ -100,31 +98,35 @@ bool tud_hid_nkro_keyboard_report(uint8_t report_id, uint8_t keycode[keycode_buf
     };
 
     uint8_t key_count = 0;
+    bool is_modifier;
 
     for(uint8_t key = 0; key < keycode_buffer; key++){
 
         //Boot key support
         if ( key_count < 6 ){
-            boot_key_modifier(&report, keycode[key], &key_count);
+            is_modifier = boot_key_modifier(&report, keycode[key], &key_count);
         }
 
         //NKRO key support
         //                keycode[key] // 8           keycode[key] % 8
-        report.key_bitmap[keycode[key] >> 3] |= 1 << (keycode[key] & 0x7);
+        if ( !is_modifier ){
+            report.key_bitmap[keycode[key] >> 3] |= 1 << (keycode[key] & 0x7);
+        }
     }
     
-
     return tud_hid_n_report(0, report_id, &report, sizeof(report));
 }
 
-void boot_key_modifier(hid_nkro_keyboard_report_t* report, uint8_t key, uint8_t* counter){
+bool boot_key_modifier(hid_nkro_keyboard_report_t* report, uint8_t key, uint8_t* counter){
     //If modifier key
     if ( key >= 0xE0 ){
-        report->modifier |= (1 << (key - 0xE0) ); 
+        report->modifier |= (1 << (key - 0xE0) );
+        return true; 
     }
     else {
         report->boot_keys[*counter] = key;
         (*counter)++;
+        return false;
     } 
 }
 
@@ -164,7 +166,8 @@ void led_blinking_task(void){
   if ( board_millis() - start_ms < blink_interval_ms) return; // not enough time
   start_ms += blink_interval_ms;
 
-  board_led_write(led_state);
+  //board_led_write(led_state);
+  gpio_put(0, led_state);
   led_state = 1 - led_state; // toggle
 }
 
