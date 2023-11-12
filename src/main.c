@@ -14,21 +14,9 @@
 #include "flash/flash.h"
 #include "leds/leds.h"
 
-//--------------------------------------------------------------------+
-// MACRO CONSTANT TYPEDEF PROTYPES
-//--------------------------------------------------------------------+
-
-bool timer_callback(repeating_timer_t *rt){
-    static bool status = true;
-    gpio_put(27, status);
-    status ^= true;
-    return true;
-}
-
 mutex_t mutex_v;
 
 led_array_t led_array;
-
 
 void core1_entry(){
     multicore_lockout_victim_init();
@@ -59,8 +47,8 @@ int main(void){
     // init device stack on configured roothub port
     tud_init(BOARD_TUD_RHPORT);
 
-    keyboard_t kbd = keyboard_new();
-    keyboard_init(&kbd);  
+    keyboard_t* kbd = keyboard_new();
+    keyboard_init(kbd);  
 
     bool write = false;
 
@@ -75,15 +63,15 @@ int main(void){
             );
     mutex_exit(&mutex_v);
 
-    keyboard_update_key(&kbd);
+    //keyboard_update_key(kbd);
 
     while (1){
         uint8_t write_data[FLASH_PAGE_SIZE] = { 0 };
         tud_task(); // tinyusb device task
         led_blinking_task();
 
-        hid_task(&kbd);
-        cdc_task(&kbd, watchdog_caused_reboot(), &write, write_data);
+        hid_task(kbd);
+        cdc_task(kbd, watchdog_caused_reboot(), &write, write_data);
         if ( write ){
             save_flash(write_data);
             write = false;

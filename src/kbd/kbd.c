@@ -3,20 +3,16 @@
 
 #include "kbd.h"
 #include "flash/flash.h"
+#include <stdlib.h>
 
-keyboard_t keyboard_new(void){
+keyboard_t* keyboard_new(void){
     uint8_t pins[PIN_COUNT] = KN;
 
     uint8_t keys[] = KN_keys;
     uint8_t keys_size = sizeof(keys) / sizeof(uint8_t);
     uint8_t current_idx = 0;
 
-    //Keyboard initialization
-    keyboard_t kbd = {
-        .status = 0,
-        //.alternate_key = false,
-        .counter = 0,
-    };
+    keyboard_t* kbd = (keyboard_t*) malloc(sizeof(keyboard_t));
 
     //Assigning values of kb keys
     for(uint8_t i = 0; i < PIN_COUNT; i++){
@@ -51,7 +47,7 @@ keyboard_t keyboard_new(void){
             kp.alternate_keys[0] = HID_KEY_ARROW_RIGHT;
         }
         */
-        kbd.pins[i] = kp;
+        kbd->pins[i] = kp;
     }
 
     return kbd;

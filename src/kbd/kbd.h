@@ -62,7 +62,7 @@ typedef struct {
     bool start_counter;
 } keyboard_t;
 
-keyboard_t keyboard_new(void);
+keyboard_t* keyboard_new(void);
 
 void keyboard_init(keyboard_t* kbd);
 
