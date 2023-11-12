@@ -87,7 +87,7 @@ int main(void){
         if ( write ){
             save_flash(write_data);
             write = false;
-            keyboard_update_key(&kbd);
+            //keyboard_update_key(&kbd);
         }
 
         mutex_enter_blocking(&mutex_v);

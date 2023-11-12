@@ -76,7 +76,6 @@ void hid_task(keyboard_t* kbd){
 
     /*------------- keyboard_t -------------*/
     if ( !tud_hid_n_ready(0) ) return;
-    // use to avoid send multiple consecutive zero report for keyboard_t
     
     uint8_t buffer[keycode_buffer] = {0};
     keyboard_update_buffer(kbd, buffer, keycode_buffer);

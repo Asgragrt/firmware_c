@@ -69,6 +69,19 @@ uint8_t kbd_get_key_count(keyboard_t* kbd, uint8_t idx){
     return kbd->pins[idx].key_count;
 }
 
+bool kbd_is_pressed(keyboard_t* kbd, uint8_t idx){
+    return !gpio_get(kbd_get_pin(kbd, idx));
+}
+
+uint8_t kbd_is_waiting(keyboard_t* kbd, uint8_t idx){
+    kbd->pins[idx].debounce = kbd->pins[idx].debounce >> 1;
+    return kbd->pins[idx].debounce;
+}
+
+void kbd_set_waiting(keyboard_t* kbd, uint8_t idx){
+    kbd->pins[idx].debounce = DEBOUNCE_TIME;
+}
+
 //Init the key pins
 void keyboard_init(keyboard_t* kbd){
     uint8_t pin;
@@ -135,12 +148,25 @@ bool keyboard_update_buffer(keyboard_t* kbd, uint8_t* buffer, uint8_t buff_lengt
 
     uint8_t offset = 0;
     for (uint8_t i = 0; i < PIN_COUNT; i++){
+        if( kbd_is_waiting(kbd, i) ){
+            memcpy(buffer + offset, kbd_get_keys(kbd, i), kbd_get_key_count(kbd, i));
+            new_status |= 1 << i;
+            offset += kbd_get_key_count(kbd, i);
+        }
+        else if( kbd_is_pressed(kbd, i) ){
+            memcpy(buffer + offset, kbd_get_keys(kbd, i), kbd_get_key_count(kbd, i));
+            new_status |= 1 << i;
+            offset += kbd_get_key_count(kbd, i);
+            kbd_set_waiting(kbd, i);
+        }
+        /*
         if( !gpio_get(kbd_get_pin(kbd, i)) ){
             //if ( offset + kbd_get_key_count(kbd, i) >= buflength) break;
             memcpy(buffer + offset, kbd_get_keys(kbd, i), kbd_get_key_count(kbd, i));
             new_status |= 1 << i;
             offset += kbd->pins[i].key_count;
         }
+        */
     }
 
     kbd->status = new_status;

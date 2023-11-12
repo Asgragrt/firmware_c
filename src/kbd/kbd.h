@@ -3,7 +3,7 @@
 
 #define PIN_COUNT 9
 
-#define DEBOUNCE_TIME 5 //[ms]
+#define DEBOUNCE_TIME 0x3FF // 10 ms
 
 /*
 #define K0 0
@@ -51,7 +51,7 @@ typedef struct {
     uint8_t key_count;
     uint8_t keys[4];
     //uint8_t alternate_keys[1];
-    uint8_t debounce;
+    uint16_t debounce;
 } keyboard_pin_t;
 
 typedef struct {
